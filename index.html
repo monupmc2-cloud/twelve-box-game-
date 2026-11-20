@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>12 गेम - Royal 12 Box (Live Firebase)</title>
+  <style>
+    :root {
+      --bg: #041311;
+      --card: rgba(8, 34, 30, 0.84);
+      --card-solid: #082420;
+      --card-light: rgba(15, 58, 51, 0.9);
+      --border: rgba(251, 191, 36, 0.28);
+      --emerald-border: rgba(52, 211, 153, 0.35);
+      --gold: #fbbf24;
+      --gold-bright: #fef08a;
+      --gold-dark: #b45309;
+      --green: #10b981;
+      --red: #f43f5e;
+      --text: #f8fafc;
+      --muted: #a7f3d0;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background:
+        radial-gradient(circle at 15% 0%, rgba(16, 185, 129, 0.28) 0%, transparent 45%),
+        radial-gradient(circle at 85% 10%, rgba(251, 191, 36, 0.2) 0%, transparent 42%),
+        linear-gradient(180deg, #06211d 0%, #030e0c 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+    header {
+      background: rgba(5, 22, 19, 0.92);
+      backdrop-filter: blur(14px);
+      padding: 13px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: 900;
+      background: linear-gradient(110deg, #fffbeb 0%, #fbbf24 45%, #f59e0b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.35));
+      letter-spacing: 0.4px;
+    }
+    .header-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .badge {
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(16, 185, 129, 0.16));
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--gold-bright);
+      border: 1px solid rgba(251, 191, 36, 0.55);
+      box-shadow: 0 0 14px rgba(251, 191, 36, 0.2);
+    }
+    .btn-sm {
+      background: linear-gradient(145deg, rgba(16, 66, 58, 0.95), rgba(8, 34, 30, 0.95));
+      color: var(--text);
+      border: 1px solid var(--emerald-border);
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.14s ease, box-shadow 0.2s ease;
+    }
+    .btn-sm:hover:not(:disabled) {
+      box-shadow: 0 0 12px rgba(52, 211, 153, 0.35);
+    }
+    .btn-sm:active:not(:disabled) { transform: scale(0.96); }
+    .btn-sm:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .container {
+      max-width: 540px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(14px);
+      border-radius: 22px;
+      padding: 16px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -60%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+      transform: skewX(-20deg);
+      pointer-events: none;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .round-tag {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .timer-badge {
+      background: rgba(4, 19, 17, 0.9);
+      border: 1px solid var(--gold);
+      color: var(--gold-bright);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.25);
+    }
+    .status-pill {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .status-open { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.25); }
+    .status-locked { background: rgba(244, 63, 94, 0.2); color: #fda4af; border: 1px solid #f43f5e; }
+    .status-result { background: rgba(251, 191, 36, 0.24); color: var(--gold-bright); border: 1px solid var(--gold); }
+    .status-pending { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid #f59e0b; }
+
+    .pnl-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .pnl-box {
+      background: linear-gradient(160deg, rgba(6, 28, 25, 0.95), rgba(3, 16, 14, 0.95));
+      border: 1px solid rgba(251, 191, 36, 0.25);
+      border-radius: 15px;
+      padding: 10px 8px;
+      text-align: center;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+    .pnl-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .pnl-val {
+      font-size: 14px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+    .pnl-profit { color: #6ee7b7; text-shadow: 0 0 10px rgba(16, 185, 129, 0.35); }
+    .pnl-loss { color: #fda4af; text-shadow: 0 0 10px rgba(244, 63, 94, 0.3); }
+    .pnl-pool { color: var(--gold-bright); text-shadow: 0 0 10px rgba(251, 191, 36, 0.35); }
+
+    .collect-banner {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.24), rgba(251, 191, 36, 0.18));
+      border: 1px solid rgba(251, 191, 36, 0.55);
+      border-radius: 15px;
+      padding: 12px 13px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    }
+    .collect-title { font-size: 12.5px; color: #ecfdf5; font-weight: 800; }
+    .collect-sub { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+    .collect-amt {
+      font-size: 16.5px;
+      font-weight: 900;
+      color: var(--gold-bright);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      text-shadow: 0 0 12px rgba(251, 191, 36, 0.45);
+    }
+
+    .blocked-alert {
+      background: rgba(244, 63, 94, 0.2);
+      border: 1px solid #f43f5e;
+      color: #fecdd3;
+      padding: 12px;
+      border-radius: 13px;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .result-banner {
+      background: linear-gradient(135deg, #fde047, #f59e0b 55%, #b45309 100%);
+      color: #06211d;
+      text-align: center;
+      padding: 13px;
+      border-radius: 16px;
+      margin-bottom: 14px;
+      font-weight: 900;
+      font-size: 18px;
+      display: none;
+      box-shadow: 0 8px 26px rgba(251, 191, 36, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+      animation: pop 0.4s ease;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.92); }
+      100% { transform: scale(1); }
+    }
+
+    .watch-only-banner {
+      background: rgba(244, 63, 94, 0.16);
+      border: 1px solid rgba(244, 63, 94, 0.55);
+      color: #fecdd3;
+      padding: 10px 12px;
+      border-radius: 13px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    /* 12 Glossy Royal Game Tiles */
+    .grid-12 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 11px;
+      margin: 14px 0;
+    }
+    .box-item {
+      background: linear-gradient(160deg, #134e43 0%, #092924 55%, #041512 100%);
+      border: 1.5px solid rgba(251, 191, 36, 0.42);
+      border-bottom: 4px solid rgba(217, 119, 6, 0.75);
+      border-radius: 19px;
+      padding: 15px 8px 13px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+    .box-item::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -35%;
+      width: 170%;
+      height: 85%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0));
+      transform: rotate(-8deg);
+      pointer-events: none;
+    }
+    .mult-tag {
+      position: absolute;
+      top: 6px;
+      right: 7px;
+      font-size: 9px;
+      font-weight: 900;
+      color: var(--gold-bright);
+      background: rgba(4, 19, 17, 0.75);
+      border: 1px solid rgba(251, 191, 36, 0.48);
+      padding: 1px 5px;
+      border-radius: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    /* Shining Risk Color Indicators */
+    .box-item.admin-low {
+      border-color: #34d399;
+      border-bottom-color: #059669;
+      background: linear-gradient(160deg, #065f46 0%, #043628 65%, #021a13 100%);
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.42), inset 0 1px 0 rgba(167, 243, 208, 0.35);
+    }
+    .box-item.admin-low .mult-tag {
+      color: #a7f3d0;
+      background: rgba(16, 185, 129, 0.26);
+      border-color: rgba(52, 211, 153, 0.65);
+    }
+    .box-item.admin-mid {
+      border-color: #facc15;
+      border-bottom-color: #ca8a04;
+      background: linear-gradient(160deg, #574406 0%, #2e2303 65%, #171101 100%);
+      box-shadow: 0 0 15px rgba(250, 204, 21, 0.36), inset 0 1px 0 rgba(254, 240, 138, 0.3);
+    }
+    .box-item.admin-mid .mult-tag {
+      color: #fef08a;
+      background: rgba(250, 204, 21, 0.25);
+      border-color: rgba(250, 204, 21, 0.65);
+    }
+    .box-item.admin-high {
+      border-color: #fb7185;
+      border-bottom-color: #e11d48;
+      background: linear-gradient(160deg, #6b0f2b 0%, #380615 65%, #1c020a 100%);
+      box-shadow: 0 0 18px rgba(244, 63, 94, 0.48), inset 0 1px 0 rgba(254, 205, 211, 0.3);
+    }
+    .box-item.admin-high .mult-tag {
+      color: #fecdd3;
+      background: rgba(244, 63, 94, 0.28);
+      border-color: rgba(251, 113, 133, 0.68);
+    }
+
+    .legend-bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      background: rgba(4, 19, 17, 0.85);
+      border-radius: 12px;
+      border: 1px solid rgba(251, 191, 36, 0.24);
+    }
+    .legend-dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-right: 4px;
+      box-shadow: 0 0 6px currentColor;
+    }
+
+    .box-item.watch-disabled { opacity: 0.48; cursor: not-allowed; }
+    .box-item:active:not(.watch-disabled) { transform: translateY(2px) scale(0.96); }
+    .box-item.selected {
+      border-color: var(--gold-bright);
+      border-bottom-color: #d97706;
+      background: linear-gradient(160deg, #784208 0%, #422203 65%, #211001 100%);
+      box-shadow: 0 0 22px rgba(251, 191, 36, 0.68), inset 0 0 14px rgba(254, 240, 138, 0.25);
+    }
+    .box-item.winner {
+      border-color: #6ee7b7;
+      border-bottom-color: #059669;
+      background: linear-gradient(160deg, #047857 0%, #022c22 72%);
+      box-shadow: 0 0 28px rgba(16, 185, 129, 0.88), inset 0 0 14px rgba(110, 231, 183, 0.35);
+      animation: winPulse 1s infinite alternate;
+    }
+    @keyframes winPulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.03); }
+    }
+    .box-num {
+      font-size: 25px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75);
+      line-height: 1.15;
+    }
+    .box-bet {
+      font-size: 11px;
+      color: var(--gold-bright);
+      margin-top: 5px;
+      font-weight: 800;
+      min-height: 15px;
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      margin: 10px 0;
+      justify-content: space-between;
+    }
+    .chip {
+      flex: 1;
+      padding: 10px 4px;
+      border-radius: 12px;
+      background: linear-gradient(160deg, rgba(16, 66, 58, 0.9), rgba(7, 31, 27, 0.95));
+      border: 1px solid rgba(251, 191, 36, 0.32);
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .chip.active {
+      background: linear-gradient(135deg, #fef08a, #fbbf24 60%, #d97706);
+      color: #041916;
+      border-color: #fffbeb;
+      box-shadow: 0 0 14px rgba(251, 191, 36, 0.5);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid rgba(255, 251, 235, 0.45);
+      border-radius: 14px;
+      background: linear-gradient(135deg, #fef08a 0%, #fbbf24 50%, #d97706 100%);
+      color: #041916;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      margin-top: 6px;
+      box-shadow: 0 6px 20px rgba(217, 119, 6, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+      transition: transform 0.14s ease, box-shadow 0.2s ease;
+    }
+    .btn-primary:hover:not(:disabled) {
+      box-shadow: 0 8px 26px rgba(251, 191, 36, 0.62);
+    }
+    .btn-primary:active:not(:disabled) { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+    .btn-green {
+      background: linear-gradient(135deg, #34d399 0%, #10b981 55%, #047857 100%);
+      color: #031713;
+      border-color: rgba(167, 243, 208, 0.55);
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+    }
+    .btn-red {
+      background: linear-gradient(135deg, #fb7185 0%, #f43f5e 55%, #be123c 100%);
+      color: #fff;
+      border-color: rgba(254, 205, 211, 0.45);
+      box-shadow: 0 6px 18px rgba(244, 63, 94, 0.35);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      background: rgba(4, 19, 17, 0.92);
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 10px;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.25);
+    }
+
+    .timer-box {
+      background: rgba(4, 19, 17, 0.85);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .timer-controls-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .note-box {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px dashed rgba(251, 191, 36, 0.45);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 12px;
+      color: #d1fae5;
+      margin-top: 10px;
+    }
+
+    .cust-table-wrap {
+      overflow-x: auto;
+      border-radius: 13px;
+      border: 1px solid rgba(251, 191, 36, 0.28);
+      background: rgba(4, 19, 17, 0.92);
+    }
+    .cust-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .cust-table th {
+      background: linear-gradient(135deg, rgba(16, 78, 67, 0.95), rgba(8, 38, 33, 0.95));
+      color: var(--gold-bright);
+      text-align: left;
+      padding: 10px 8px;
+      font-weight: 800;
+      font-size: 12px;
+      border-bottom: 1px solid rgba(251, 191, 36, 0.28);
+      white-space: nowrap;
+    }
+    .cust-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid rgba(52, 211, 153, 0.14);
+      vertical-align: middle;
+    }
+    .cust-table tr:last-child td { border-bottom: none; }
+    .sr-badge {
+      display: inline-block;
+      background: rgba(16, 185, 129, 0.18);
+      color: #6ee7b7;
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      font-weight: 800;
+      padding: 3px 7px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .mgr-item {
+      background: rgba(4, 19, 17, 0.88);
+      border: 1px solid rgba(251, 191, 36, 0.28);
+      border-radius: 14px;
+      padding: 11px;
+      margin-bottom: 8px;
+    }
+    .mgr-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    .mgr-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+    .mgr-stat-cell {
+      background: rgba(12, 46, 40, 0.7);
+      border-radius: 8px;
+      padding: 6px 4px;
+      text-align: center;
+      border: 1px solid rgba(52, 211, 153, 0.18);
+    }
+
+    .hidden { display: none !important; }
+
+    .log-item {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(52, 211, 153, 0.16);
+      font-size: 12.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .log-item:last-child { border-bottom: none; }
+    .log-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* Custom In-App Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 10, 9, 0.82);
+      backdrop-filter: blur(7px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+    }
+    .modal-card {
+      width: 100%;
+      max-width: 400px;
+      background: linear-gradient(160deg, #0b2e29, #051815);
+      border: 1.5px solid rgba(251, 191, 36, 0.55);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75), 0 0 25px rgba(251, 191, 36, 0.22);
+    }
+    .modal-title { font-size: 17px; font-weight: 900; color: var(--gold-bright); margin-bottom: 6px; }
+    .modal-desc { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.4; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #0b332d, #051c19);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 8px 26px rgba(0, 0, 0, 0.7), 0 0 16px rgba(251, 191, 36, 0.3);
+      z-index: 999;
+      display: none;
+      border: 1px solid var(--gold);
+      text-align: center;
+      max-width: 90%;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">👑 12 गेम</div>
+    <div class="header-actions">
+      <div id="headerCoins" class="badge hidden">🪙 0</div>
+      <button id="cashMgrToggleBtn" class="btn-sm" style="background:linear-gradient(135deg, rgba(16,185,129,0.28), rgba(6,78,59,0.85)); border-color:#34d399;">💼 कैश मैनेजर</button>
+      <button id="adminToggleBtn" class="btn-sm" style="border-color:rgba(251,191,36,0.5); color:#fde68a;">Admin</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- 1. CUSTOMER LOGIN / APPROVAL SCREEN -->
+    <div id="customerLoginView" class="card">
+      <h2 style="margin-bottom: 6px; font-size: 20px; color: var(--gold-bright);">स्वागत है! 👋</h2>
+      <p style="color: var(--muted); font-size: 13px; margin-bottom: 14px;">
+        अपना नाम और 10 अंकों का मोबाइल नंबर डालें। एडमिन अप्रूवल के बाद आप गेम देख/खेल सकेंगे।
+      </p>
+      <input type="text" id="custName" placeholder="आपका नाम (जैसे: मोनू)" />
+      <input type="tel" id="custPhone" placeholder="10 अंकों का मोबाइल नंबर" maxlength="10" />
+      <button id="custLoginBtn" class="btn-primary">आगे बढ़ें / रिक्वेस्ट भेजें</button>
+    </div>
+
+    <!-- 2. CUSTOMER GAME VIEW -->
+    <div id="customerGameView" class="hidden">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div>
+            <div style="font-size:11px; color:var(--muted);">खिलाड़ी</div>
+            <div id="displayCustName" style="font-weight:800; font-size:16px;">-</div>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span id="custApprovalBadge" class="status-pill status-pending">पेंडिंग</span>
+            <button id="custLogoutBtn" class="btn-sm">बाहर निकलें</button>
+          </div>
+        </div>
+
+        <div id="pendingApprovalAlert" class="blocked-alert hidden">
+          ⏳ आपकी आईडी अभी एडमिन अप्रूवल के लिए पेंडिंग है। अप्रूवल मिलते ही आप गेम देख और खेल सकेंगे।
+        </div>
+
+        <div id="playerBlockedAlert" class="blocked-alert hidden">
+          🚫 आपकी आईडी एडमिन द्वारा ब्लॉक कर दी गई है।
+        </div>
+
+        <div id="customerActiveArea">
+          <div class="status-bar">
+            <span id="roundLabel" class="round-tag">राउंड #1</span>
+            <span id="customerTimer" class="timer-badge">⏱️ --:--</span>
+            <span id="gameStatusPill" class="status-pill status-open">बेटिंग चालू है</span>
+          </div>
+
+          <div id="winnerBanner" class="result-banner">
+            🎉 विजेता डब्बा: #<span id="winnerNumText">-</span>
+          </div>
+
+          <p id="playHintText" style="font-size: 13px; color: var(--muted); text-align: center;">अपना लकी डब्बा चुनें (जीत पर 10x कॉइन!)</p>
+
+          <div id="watchOnlyBanner" class="watch-only-banner hidden" style="margin-top:8px;">
+            👀 आपके पास कॉइन्स नहीं हैं। आप अभी <b>खाली देख सकते हैं</b>—खेलने के लिए कैश देकर कॉइन जुड़वाएँ।
+          </div>
+
+          <div class="grid-12" id="boxesGrid"></div>
+
+          <div id="betControlsSection">
+            <div style="font-size: 13px; color: var(--muted); margin-top: 10px;">कॉइन चुनें:</div>
+            <div class="chips" id="chipContainer">
+              <div class="chip active" data-val="10">10</div>
+              <div class="chip" data-val="50">50</div>
+              <div class="chip" data-val="100">100</div>
+              <div class="chip" data-val="500">500</div>
+            </div>
+            <input type="number" id="customAmount" value="10" min="1" placeholder="या खुद कॉइन लिखें" />
+            <button id="placeBetBtn" class="btn-primary">डब्बे पर कॉइन लगाएँ</button>
+          </div>
+
+          <div class="note-box">
+            💵 <b>कैश नियम:</b> कॉइन जुड़वाने या रिडीम करके कैश लेने के लिए एडमिन या अप्रूव्ड कैश मैनेजर से बात करें।
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size: 15px; margin-bottom: 8px; color: var(--gold-bright);">इस राउंड में आपके लगे कॉइन</h3>
+        <div id="myBetsList" style="font-size: 13px; color: var(--muted);">अभी तक कोई कॉइन नहीं लगाया है।</div>
+      </div>
+    </div>
+
+    <!-- 3. CASH MANAGER LOGIN & DESK VIEW -->
+    <div id="cashManagerView" class="card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 style="font-size: 18px; color: var(--gold-bright);">💼 कैश मैनेजर पोर्टल</h2>
+        <button id="backFromCashMgrBtn" class="btn-sm">वापस गेम पर</button>
+      </div>
+
+      <div id="cmLoginBox">
+        <p style="font-size: 12.5px; color: var(--muted); margin-bottom: 10px;">
+          एडमिन द्वारा बनाई गई अपनी मैनेजर आईडी और पिन डालकर लॉगिन करें।
+        </p>
+        <input type="text" id="cmLoginIdInput" placeholder="मैनेजर आईडी (जैसे: CM-101)" />
+        <input type="password" id="cmLoginPinInput" placeholder="पिन / पासवर्ड" />
+        <button id="cmLoginBtn" class="btn-primary btn-green">मैनेजर लॉगिन करें</button>
+      </div>
+
+      <div id="cmDeskBox" class="hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:6px; flex-wrap:wrap;">
+          <div>
+            <div style="font-size:11px; color:var(--muted);">लॉगिन मैनेजर</div>
+            <div id="cmLoggedNameDisplay" style="font-weight:800; font-size:15px; color:#fff;">-</div>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span id="cmStatusBadge" class="status-pill status-open">सक्रिय</span>
+            <button id="cmLogoutBtn" class="btn-sm">लॉगआउट</button>
+          </div>
+        </div>
+
+        <div id="cmBlockedAlert" class="blocked-alert hidden">
+          🚫 आपका कैश मैनेजर एक्सेस एडमिन द्वारा ब्लॉक कर दिया गया है। आप अभी कॉइन जोड़ या रिडीम नहीं कर सकते।
+        </div>
+
+        <div class="pnl-grid">
+          <div class="pnl-box">
+            <div class="pnl-label">बचा स्टॉक</div>
+            <div id="cmStockVal" class="pnl-val pnl-pool">🪙 0</div>
+          </div>
+          <div class="pnl-box">
+            <div class="pnl-label">कैश कलेक्ट (+)</div>
+            <div id="cmInVal" class="pnl-val pnl-profit">🪙 0</div>
+          </div>
+          <div class="pnl-box">
+            <div class="pnl-label">कैश रिडीम (-)</div>
+            <div id="cmOutVal" class="pnl-val pnl-loss">🪙 0</div>
+          </div>
+        </div>
+
+        <div class="collect-banner">
+          <div>
+            <div class="collect-title">💵 एडमिन को देने योग्य कैश (हाथ में बचा कैश)</div>
+            <div class="collect-sub">कैश कलेक्ट (+) − कैश रिडीम (−)</div>
+          </div>
+          <div id="cmHandCashVal" class="collect-amt">🪙 0</div>
+        </div>
+
+        <input type="text" id="cashMgrSearchInput" placeholder="🔍 अप्रूव्ड खिलाड़ी का नाम या नंबर खोजें..." style="margin-bottom:10px; padding:10px; font-size:13px;" />
+
+        <div class="cust-table-wrap" style="max-height: 300px; overflow-y: auto; margin-bottom:14px;">
+          <table class="cust-table">
+            <thead>
+              <tr>
+                <th>क्र.</th>
+                <th>नाम</th>
+                <th>मोबाइल नंबर</th>
+                <th>कॉइन / कैश</th>
+              </tr>
+            </thead>
+            <tbody id="cashMgrTableBody">
+              <tr><td colspan="4" style="text-align:center; color:var(--muted); padding:14px;">लोड हो रहा है...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="font-size: 14px; margin-bottom: 8px; color: var(--gold-bright);">📒 आपका कैश लेन-देन हिसाब</h3>
+        <div id="cashMgrLogs" style="max-height: 200px; overflow-y: auto; font-size: 13px; color: var(--muted);">लोड हो रहा है...</div>
+      </div>
+    </div>
+
+    <!-- 4. ADMIN LOGIN VIEW -->
+    <div id="adminLoginView" class="card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="font-size: 18px; color: var(--gold-bright);">🔐 एडमिन लॉगिन</h2>
+        <button id="backToGameBtn" class="btn-sm">वापस गेम पर</button>
+      </div>
+      <input type="email" id="adminEmail" placeholder="एडमिन ईमेल (Gmail)" />
+      <input type="password" id="adminPass" placeholder="पासवर्ड" />
+      <button id="adminLoginBtn" class="btn-primary">लॉगिन करें</button>
+    </div>
+
+    <!-- 5. ADMIN DASHBOARD VIEW -->
+    <div id="adminDashboardView" class="hidden">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h2 style="font-size: 18px; color: var(--gold-bright);">👑 एडमिन कंट्रोल पैनल</h2>
+          <button id="adminLogoutBtn" class="btn-sm">लॉगआउट</button>
+        </div>
+
+        <div class="pnl-grid">
+          <div class="pnl-box">
+            <div class="pnl-label">कुल प्रॉफिट</div>
+            <div id="netProfitVal" class="pnl-val pnl-profit">🪙 0</div>
+          </div>
+          <div class="pnl-box">
+            <div class="pnl-label">कुल लॉस (इनाम)</div>
+            <div id="totalLossVal" class="pnl-val pnl-loss">🪙 0</div>
+          </div>
+          <div class="pnl-box">
+            <div class="pnl-label">राउंड कुल बेट</div>
+            <div id="roundPoolVal" class="pnl-val pnl-pool">🪙 0</div>
+          </div>
+        </div>
+
+        <div class="status-bar">
+          <span id="adminRoundLabel" class="round-tag">राउंड #1</span>
+          <span id="adminTimerDisplay" class="timer-badge">⏱️ --:--</span>
+          <span id="adminStatusPill" class="status-pill status-open">OPEN</span>
+        </div>
+
+        <div class="timer-box">
+          <div style="font-size:13px; color:var(--gold-bright); font-weight:700; margin-bottom:6px;">⏱️ राउंड टाइमिंग सेट करें (सेकंड में):</div>
+          <div style="display:flex; gap:8px;">
+            <input type="number" id="timerDurationInput" value="60" min="5" max="3600" style="margin-bottom:0;" />
+            <button id="startTimerBtn" class="btn-primary btn-green" style="width:auto; margin-top:0; padding:0 14px; font-size:13px; white-space:nowrap;">टाइमर शुरू</button>
+          </div>
+          <div class="timer-controls-row">
+            <button id="addTimeBtn" class="btn-sm" style="background:rgba(16,185,129,0.22); border-color:#10b981;">+10s बढ़ाएँ</button>
+            <button id="subTimeBtn" class="btn-sm" style="background:rgba(244,63,94,0.22); border-color:#f43f5e;">-10s घटाएँ</button>
+            <button id="stopTimerBtn" class="btn-sm">रीसेट/बंद</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;">
+          <button id="openBettingBtn" class="btn-primary btn-green" style="font-size:13px; padding:10px;">बेटिंग चालू (Open)</button>
+          <button id="lockBettingBtn" class="btn-primary btn-red" style="font-size:13px; padding:10px;">बेटिंग बंद (Lock)</button>
+        </div>
+
+        <h4 style="font-size:13px; color:var(--muted); margin-bottom:6px;">किस डब्बे पर कितने कॉइन लगे (लाइव):</h4>
+        <div class="legend-bar">
+          <span><span class="legend-dot" style="background:#34d399; color:#34d399;"></span><b>ग्रीन:</b> सबसे कम / 0 (खोलने योग्य)</span>
+          <span><span class="legend-dot" style="background:#facc15; color:#facc15;"></span><b>येलो:</b> थोड़े बहुत</span>
+          <span><span class="legend-dot" style="background:#fb7185; color:#fb7185;"></span><b>रेड:</b> सबसे ज़्यादा</span>
+        </div>
+        <div class="grid-12" id="adminBoxesGrid"></div>
+
+        <div style="margin-top: 14px; border-top: 1px solid rgba(251,191,36,0.24); padding-top: 12px;">
+          <label style="font-size: 13px; color: var(--muted); display:block; margin-bottom:6px;">विजेता डब्बा चुनें (1 से 12):</label>
+          <select id="winningBoxSelect">
+            <option value="">-- डब्बा चुनें --</option>
+            <option value="1">डब्बा #1</option>
+            <option value="2">डब्बा #2</option>
+            <option value="3">डब्बा #3</option>
+            <option value="4">डब्बा #4</option>
+            <option value="5">डब्बा #5</option>
+            <option value="6">डब्बा #6</option>
+            <option value="7">डब्बा #7</option>
+            <option value="8">डब्बा #8</option>
+            <option value="9">डब्बा #9</option>
+            <option value="10">डब्बा #10</option>
+            <option value="11">डब्बा #11</option>
+            <option value="12">डब्बा #12</option>
+          </select>
+          <button id="declareWinnerBtn" class="btn-primary">🏆 रिजल्ट घोषित करें (10x इनाम दें)</button>
+          <button id="nextRoundBtn" class="btn-sm" style="width:100%; margin-top:10px; padding:12px; font-size:14px;">🔄 नया राउंड शुरू करें</button>
+        </div>
+      </div>
+
+      <!-- Cash Managers Management (Create ID, Approve, Stock, Block & Cash To Collect) -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; flex-wrap:wrap;">
+          <h3 style="font-size: 16px; color: var(--gold-bright);">💼 कैश मैनेजर आईडी, स्टॉक व कैश हिसाब</h3>
+          <button id="createCashMgrBtn" class="btn-primary btn-green" style="width:auto; margin-top:0; padding:8px 12px; font-size:12px;">
+            + नया मैनेजर बनाएँ
+          </button>
+        </div>
+
+        <div class="collect-banner">
+          <div>
+            <div class="collect-title">💰 सभी मैनेजरों से कुल मिलने वाला कैश</div>
+            <div class="collect-sub">कुल कैश कलेक्ट (+) − कुल कैश रिडीम (−)</div>
+          </div>
+          <div id="admTotalManagersCashVal" class="collect-amt">🪙 0</div>
+        </div>
+
+        <div id="adminManagersList">
+          <p style="font-size:12px; color:var(--muted);">मैनेजर लोड हो रहे हैं...</p>
+        </div>
+
+        <h4 style="font-size:13px; color:var(--gold-bright); margin:12px 0 6px;">📅 मैनेजर स्टॉक आवंटन रिकॉर्ड:</h4>
+        <div id="adminCmAllocationLogs" style="max-height: 140px; overflow-y: auto; font-size: 12.5px; color: var(--muted); background:rgba(4,19,17,0.88); padding:8px 10px; border-radius:12px; border:1px solid rgba(251,191,36,0.22); margin-bottom:10px;">
+          लोड हो रहा है...
+        </div>
+
+        <h4 style="font-size:13px; color:var(--gold-bright); margin-bottom:6px;">📋 मैनेजर द्वारा किया गया कैश कलेक्ट / रिडीम रिकॉर्ड:</h4>
+        <div id="adminCmPlayerLogs" style="max-height: 180px; overflow-y: auto; font-size: 12.5px; color: var(--muted); background:rgba(4,19,17,0.88); padding:8px 10px; border-radius:12px; border:1px solid rgba(251,191,36,0.22);">
+          लोड हो रहा है...
+        </div>
+      </div>
+
+      <!-- Round-wise Profit/Loss -->
+      <div class="card">
+        <h3 style="font-size: 15px; margin-bottom: 8px; color: var(--gold-bright);">📊 राउंड वाइज़ प्रॉफिट / लॉस हिसाब</h3>
+        <div id="adminPnlLogs" style="max-height: 200px; overflow-y: auto; font-size: 13px; color: var(--muted);">लोड हो रहा है...</div>
+      </div>
+
+      <!-- Players List with Approval & Block Controls -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <h3 style="font-size: 16px; color: var(--gold-bright);">📋 खिलाड़ी लिस्ट (अप्रूवल व कॉइन)</h3>
+          <span id="totalPlayersBadge" class="badge" style="font-size:11px; padding:4px 9px;">कुल: 0</span>
+        </div>
+        <input type="text" id="playerSearchInput" placeholder="🔍 नाम या नंबर से खोजें..." style="margin-bottom:10px; padding:10px; font-size:13px;" />
+
+        <div class="cust-table-wrap" style="max-height: 360px; overflow-y: auto;">
+          <table class="cust-table">
+            <thead>
+              <tr>
+                <th>क्र.</th>
+                <th>नाम / स्टेटस</th>
+                <th>मोबाइल नंबर</th>
+                <th>कॉइन / एक्शन</th>
+              </tr>
+            </thead>
+            <tbody id="adminUsersTableBody">
+              <tr><td colspan="4" style="text-align:center; color:var(--muted); padding:14px;">लोड हो रहा है...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- All Cash Logs -->
+      <div class="card">
+        <h3 style="font-size: 15px; margin-bottom: 8px; color: var(--gold-bright);">📒 पूरा कैश इन / रिडीम रिकॉर्ड</h3>
+        <div id="adminCashLogs" style="max-height: 200px; overflow-y: auto; font-size: 13px; color: var(--muted);">लोड हो रहा है...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Custom In-App Modal -->
+  <div id="customModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div id="modalTitle" class="modal-title">सूचना</div>
+      <div id="modalDesc" class="modal-desc"></div>
+      <div id="modalInputs"></div>
+      <div class="modal-actions">
+        <button id="modalCancelBtn" class="btn-sm" style="flex:1; padding:11px;">रद्द करें</button>
+        <button id="modalConfirmBtn" class="btn-primary" style="flex:1; margin-top:0; padding:11px; font-size:14px;">पुष्टि करें</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, updateDoc, collection,
+      onSnapshot, increment, query, where, addDoc, serverTimestamp, orderBy, limit
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCnreGl2qOEmqEtEQduABjJX9viTmPUZAQ",
+      authDomain: "game-c25ff.firebaseapp.com",
+      projectId: "game-c25ff",
+      storageBucket: "game-c25ff.firebasestorage.app",
+      messagingSenderId: "1086105839370",
+      appId: "1:1086105839370:web:1065f679773dd6b32c3cf3",
+      measurementId: "G-GZ1GL2DHGD"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // State
+    let currentPhone = localStorage.getItem("game12_phone") || null;
+    let currentUserData = null;
+    let loggedInCashMgr = null;
+    let allManagersCache = [];
+    let allPlayersCache = [];
+    let currentRoundBets = [];
+    let selectedBox = null;
+    let autoLockedForThisEndTime = null;
+
+    let gameState = {
+      round: 1,
+      status: "open",
+      winner: null,
+      endTime: null,
+      totalProfit: 0,
+      totalLoss: 0
+    };
+
+    // Custom Modal Helper (replaces prompt/confirm/alert)
+    function openCustomModal({ title, desc, fields = [], confirmText = "पुष्टि करें", confirmClass = "btn-primary" }) {
+      return new Promise((resolve) => {
+        const backdrop = document.getElementById("customModal");
+        const titleEl = document.getElementById("modalTitle");
+        const descEl = document.getElementById("modalDesc");
+        const inputsEl = document.getElementById("modalInputs");
+        const confirmBtn = document.getElementById("modalConfirmBtn");
+        const cancelBtn = document.getElementById("modalCancelBtn");
+
+        titleEl.textContent = title;
+        descEl.textContent = desc || "";
+        inputsEl.innerHTML = "";
+
+        fields.forEach((f) => {
+          const inp = document.createElement("input");
+          inp.type = f.type || "text";
+          inp.id = `modal_field_${f.name}`;
+          inp.placeholder = f.placeholder || "";
+          inp.value = f.value ?? "";
+          inputsEl.appendChild(inp);
+        });
+
+        confirmBtn.textContent = confirmText;
+        confirmBtn.className = `btn-primary ${confirmClass.includes("btn-green") ? "btn-green" : confirmClass.includes("btn-red") ? "btn-red" : ""}`;
+        confirmBtn.style.marginTop = "0";
+        confirmBtn.style.padding = "11px";
+        confirmBtn.style.fontSize = "14px";
+        confirmBtn.style.flex = "1";
+
+        backdrop.classList.remove("hidden");
+        if (fields.length > 0) {
+          setTimeout(() => document.getElementById(`modal_field_${fields[0].name}`)?.focus(), 40);
+        }
+
+        const cleanup = (result) => {
+          backdrop.classList.add("hidden");
+          confirmBtn.onclick = null;
+          cancelBtn.onclick = null;
+          resolve(result);
+        };
+
+        cancelBtn.onclick = () => cleanup(null);
+        confirmBtn.onclick = () => {
+          const values = {};
+          fields.forEach((f) => {
+            values[f.name] = document.getElementById(`modal_field_${f.name}`).value.trim();
+          });
+          cleanup(values);
+        };
+      });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      setTimeout(() => { t.style.display = "none"; }, 3000);
+    }
+
+    function formatDateTime(ts) {
+      if (!ts) return "अभी-अभी";
+      const d = ts.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleString("hi-IN", {
+        day: "2-digit", month: "short", year: "numeric",
+        hour: "2-digit", minute: "2-digit"
+      });
+    }
+
+    function formatTime(sec) {
+      const s = Math.max(0, Math.floor(sec));
+      const mins = Math.floor(s / 60);
+      const rem = s % 60;
+      return `${String(mins).padStart(2, "0")}:${String(rem).padStart(2, "0")}`;
+    }
+
+    // Ensure main game doc exists
+    const gameDocRef = doc(db, "settings", "currentGame");
+    async function ensureGameDoc() {
+      const snap = await getDoc(gameDocRef);
+      if (!snap.exists()) {
+        await setDoc(gameDocRef, {
+          round: 1,
+          status: "open",
+          winner: null,
+          endTime: null,
+          totalProfit: 0,
+          totalLoss: 0
+        });
+      }
+    }
+    ensureGameDoc();
+
+    // Customer helper checks
+    function isPlayerApproved() {
+      return currentUserData?.status === "approved";
+    }
+    function isPlayerBlocked() {
+      return currentUserData?.status === "blocked";
+    }
+    function hasCoins() {
+      return isPlayerApproved() && !isPlayerBlocked() && (currentUserData?.coins || 0) > 0;
+    }
+
+    function updateCustomerAccessUI() {
+      if (!currentPhone || !currentUserData) return;
+      const badge = document.getElementById("custApprovalBadge");
+      const pendingAlert = document.getElementById("pendingApprovalAlert");
+      const blockedAlert = document.getElementById("playerBlockedAlert");
+      const activeArea = document.getElementById("customerActiveArea");
+
+      if (isPlayerBlocked()) {
+        badge.textContent = "ब्लॉक";
+        badge.className = "status-pill status-locked";
+        blockedAlert.classList.remove("hidden");
+        pendingAlert.classList.add("hidden");
+        activeArea.classList.add("hidden");
+        return;
+      }
+
+      if (!isPlayerApproved()) {
+        badge.textContent = "पेंडिंग अप्रूवल";
+        badge.className = "status-pill status-pending";
+        pendingAlert.classList.remove("hidden");
+        blockedAlert.classList.add("hidden");
+        activeArea.classList.add("hidden");
+        return;
+      }
+
+      badge.textContent = "अप्रूव्ड";
+      badge.className = "status-pill status-open";
+      pendingAlert.classList.add("hidden");
+      blockedAlert.classList.add("hidden");
+      activeArea.classList.remove("hidden");
+
+      const canPlay = hasCoins();
+      const watchBanner = document.getElementById("watchOnlyBanner");
+      const betSection = document.getElementById("betControlsSection");
+      const betBtn = document.getElementById("placeBetBtn");
+      const hintText = document.getElementById("playHintText");
+
+      if (!canPlay) {
+        selectedBox = null;
+        watchBanner.classList.remove("hidden");
+        betSection.classList.add("hidden");
+        betBtn.disabled = true;
+        hintText.textContent = "अभी आप सिर्फ़ गेम देख सकते हैं (0 कॉइन)";
+      } else {
+        watchBanner.classList.add("hidden");
+        betSection.classList.remove("hidden");
+        betBtn.disabled = (gameState.status !== "open");
+        hintText.textContent = "अपना लकी डब्बा चुनें (जीत पर 10x कॉइन!)";
+      }
+      renderCustomerBoxes();
+    }
+
+    // Countdown tick
+    setInterval(async () => {
+      const custTimerEl = document.getElementById("customerTimer");
+      const adminTimerEl = document.getElementById("adminTimerDisplay");
+
+      if (!gameState.endTime) {
+        custTimerEl.textContent = "⏱️ --:--";
+        adminTimerEl.textContent = "⏱️ --:--";
+        return;
+      }
+
+      const remainingSec = Math.ceil((gameState.endTime - Date.now()) / 1000);
+      const formatted = `⏱️ ${formatTime(remainingSec)}`;
+      custTimerEl.textContent = formatted;
+      adminTimerEl.textContent = formatted;
+
+      if (remainingSec <= 0 && gameState.status === "open" && autoLockedForThisEndTime !== gameState.endTime) {
+        autoLockedForThisEndTime = gameState.endTime;
+        try {
+          await updateDoc(gameDocRef, { status: "locked" });
+          showToast("समय समाप्त! बेटिंग बंद हो गई।");
+        } catch (e) {}
+      }
+    }, 1000);
+
+    // Render 12 boxes (Customer)
+    function renderCustomerBoxes() {
+      const grid = document.getElementById("boxesGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      const canPlay = hasCoins();
+
+      for (let i = 1; i <= 12; i++) {
+        const myBetOnBox = currentRoundBets
+          .filter(b => b.phone === currentPhone && b.box === i)
+          .reduce((sum, b) => sum + b.amount, 0);
+
+        const div = document.createElement("div");
+        div.className = "box-item";
+        if (!canPlay) div.classList.add("watch-disabled");
+        if (canPlay && selectedBox === i) div.classList.add("selected");
+        if (gameState.status === "result" && Number(gameState.winner) === i) {
+          div.classList.add("winner");
+        }
+        div.innerHTML = `
+          <span class="mult-tag">10x</span>
+          <div class="box-num">${i}</div>
+          <div class="box-bet">${myBetOnBox > 0 ? "🪙 " + myBetOnBox : ""}</div>
+        `;
+        div.onclick = () => {
+          if (!hasCoins()) {
+            showToast("बिना कॉइन के आप सिर्फ़ देख सकते हैं! पहले कॉइन जुड़वाएँ।");
+            return;
+          }
+          if (gameState.status !== "open") {
+            showToast("अभी बेटिंग बंद है!");
+            return;
+          }
+          selectedBox = i;
+          renderCustomerBoxes();
+        };
+        grid.appendChild(div);
+      }
+    }
+
+    // Render 12 boxes (Admin)
+    function renderAdminBoxes() {
+      const grid = document.getElementById("adminBoxesGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      const totals = [];
+      let roundPool = 0;
+      for (let i = 1; i <= 12; i++) {
+        const totalOnBox = currentRoundBets
+          .filter(b => b.box === i)
+          .reduce((sum, b) => sum + b.amount, 0);
+        roundPool += totalOnBox;
+        totals.push({ box: i, total: totalOnBox });
+      }
+
+      document.getElementById("roundPoolVal").textContent = `🪙 ${roundPool}`;
+
+      const maxAmt = Math.max(...totals.map(t => t.total));
+      const minAmt = Math.min(...totals.map(t => t.total));
+
+      totals.forEach(({ box: i, total: totalOnBox }) => {
+        const div = document.createElement("div");
+        div.className = "box-item";
+
+        let tagText = "10x";
+        if (maxAmt > 0) {
+          if (totalOnBox === minAmt) {
+            div.classList.add("admin-low");
+            tagText = totalOnBox === 0 ? "0 • खोलें" : "कम • खोलें";
+          } else if (totalOnBox === maxAmt) {
+            div.classList.add("admin-high");
+            tagText = "सबसे ज़्यादा";
+          } else {
+            div.classList.add("admin-mid");
+            tagText = "थोड़े बहुत";
+          }
+        } else {
+          div.classList.add("admin-low");
+          tagText = "0 • खोलें";
+        }
+
+        if (gameState.status === "result" && Number(gameState.winner) === i) {
+          div.classList.add("winner");
+          tagText = "🏆 जीता";
+        }
+
+        div.innerHTML = `
+          <span class="mult-tag">${tagText}</span>
+          <div class="box-num" style="font-size:19px;">#${i}</div>
+          <div class="box-bet">🪙 ${totalOnBox}</div>
+        `;
+        grid.appendChild(div);
+      });
+    }
+
+    // Game state listener
+    onSnapshot(gameDocRef, (snap) => {
+      if (!snap.exists()) return;
+      gameState = snap.data();
+
+      document.getElementById("roundLabel").textContent = `राउंड #${gameState.round}`;
+      document.getElementById("adminRoundLabel").textContent = `राउंड #${gameState.round}`;
+      document.getElementById("netProfitVal").textContent = `🪙 ${gameState.totalProfit || 0}`;
+      document.getElementById("totalLossVal").textContent = `🪙 ${gameState.totalLoss || 0}`;
+
+      const pill = document.getElementById("gameStatusPill");
+      const adminPill = document.getElementById("adminStatusPill");
+      const banner = document.getElementById("winnerBanner");
+      const betBtn = document.getElementById("placeBetBtn");
+
+      if (gameState.status === "open") {
+        pill.textContent = "बेटिंग चालू है";
+        pill.className = "status-pill status-open";
+        adminPill.textContent = "OPEN";
+        adminPill.className = "status-pill status-open";
+        banner.style.display = "none";
+        betBtn.disabled = !hasCoins();
+      } else if (gameState.status === "locked") {
+        pill.textContent = "बेटिंग बंद";
+        pill.className = "status-pill status-locked";
+        adminPill.textContent = "LOCKED";
+        adminPill.className = "status-pill status-locked";
+        banner.style.display = "none";
+        betBtn.disabled = true;
+      } else if (gameState.status === "result") {
+        pill.textContent = "रिजल्ट घोषित";
+        pill.className = "status-pill status-result";
+        adminPill.textContent = "RESULT: #" + gameState.winner;
+        adminPill.className = "status-pill status-result";
+        document.getElementById("winnerNumText").textContent = gameState.winner;
+        banner.style.display = "block";
+        betBtn.disabled = true;
+      }
+
+      updateCustomerAccessUI();
+      listenToRoundBets(gameState.round);
+    });
+
+    // Bets listener
+    let unsubscribeBets = null;
+    function listenToRoundBets(roundNum) {
+      if (unsubscribeBets) unsubscribeBets();
+      const q = query(collection(db, "bets"), where("round", "==", roundNum));
+      unsubscribeBets = onSnapshot(q, (snapshot) => {
+        currentRoundBets = [];
+        snapshot.forEach(d => currentRoundBets.push({ id: d.id, ...d.data() }));
+        renderCustomerBoxes();
+        renderAdminBoxes();
+        updateMyBetsUI();
+      });
+    }
+
+    function updateMyBetsUI() {
+      const list = document.getElementById("myBetsList");
+      if (!currentPhone) return;
+      const myBets = currentRoundBets.filter(b => b.phone === currentPhone);
+      if (myBets.length === 0) {
+        list.textContent = "इस राउंड में अभी तक कोई कॉइन नहीं लगाया है।";
+        return;
+      }
+      list.innerHTML = myBets.map(b =>
+        `<div style="padding:4px 0; border-bottom:1px solid rgba(52,211,153,0.15);">डब्बा <b>#${b.box}</b> — 🪙 <b>${b.amount}</b> कॉइन</div>`
+      ).join("");
+    }
+
+    // Customer profile sync
+    let unsubscribeUser = null;
+    function loadCustomer(phone) {
+      currentPhone = phone;
+      localStorage.setItem("game12_phone", phone);
+      document.getElementById("customerLoginView").classList.add("hidden");
+      document.getElementById("customerGameView").classList.remove("hidden");
+      document.getElementById("cashManagerView").classList.add("hidden");
+      document.getElementById("headerCoins").classList.remove("hidden");
+
+      if (unsubscribeUser) unsubscribeUser();
+      unsubscribeUser = onSnapshot(doc(db, "players", phone), (snap) => {
+        if (snap.exists()) {
+          currentUserData = snap.data();
+          document.getElementById("displayCustName").textContent = `${currentUserData.name} (${phone})`;
+          document.getElementById("headerCoins").textContent = `🪙 ${currentUserData.coins || 0}`;
+          updateCustomerAccessUI();
+          updateMyBetsUI();
+        }
+      });
+    }
+
+    if (currentPhone) loadCustomer(currentPhone);
+
+    document.getElementById("custLoginBtn").onclick = async () => {
+      const name = document.getElementById("custName").value.trim();
+      const phone = document.getElementById("custPhone").value.trim();
+      if (!name || phone.length < 10) {
+        showToast("कृपया सही नाम और 10 अंकों का नंबर डालें");
+        return;
+      }
+      const userRef = doc(db, "players", phone);
+      const snap = await getDoc(userRef);
+      if (!snap.exists()) {
+        await setDoc(userRef, {
+          name,
+          phone,
+          coins: 0,
+          status: "pending",
+          createdAt: serverTimestamp()
+        });
+        showToast("रिक्वेस्ट भेज दी गई! एडमिन अप्रूवल का इंतज़ार करें।");
+      } else {
+        await updateDoc(userRef, { name });
+        showToast("स्वागत है " + name + "!");
+      }
+      loadCustomer(phone);
+    };
+
+    document.getElementById("custLogoutBtn").onclick = () => {
+      localStorage.removeItem("game12_phone");
+      currentPhone = null;
+      currentUserData = null;
+      document.getElementById("customerGameView").classList.add("hidden");
+      document.getElementById("headerCoins").classList.add("hidden");
+      document.getElementById("customerLoginView").classList.remove("hidden");
+    };
+
+    // Chips & Place Bet
+    document.querySelectorAll(".chip").forEach(chip => {
+      chip.onclick = () => {
+        document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        document.getElementById("customAmount").value = chip.dataset.val;
+      };
+    });
+
+    document.getElementById("placeBetBtn").onclick = async () => {
+      if (!isPlayerApproved() || isPlayerBlocked()) {
+        showToast("आपकी आईडी अभी अप्रूव्ड या सक्रिय नहीं है!");
+        return;
+      }
+      if (!hasCoins()) {
+        showToast("आपके पास कॉइन्स नहीं हैं! आप सिर्फ़ देख सकते हैं।");
+        updateCustomerAccessUI();
+        return;
+      }
+      if (gameState.status !== "open") {
+        showToast("अभी बेटिंग बंद है!");
+        return;
+      }
+      if (!selectedBox) {
+        showToast("पहले 1 से 12 में से कोई डब्बा चुनें!");
+        return;
+      }
+      const amount = parseInt(document.getElementById("customAmount").value, 10);
+      if (!amount || amount <= 0) {
+        showToast("सही कॉइन राशि डालें!");
+        return;
+      }
+      const balance = currentUserData?.coins || 0;
+      if (balance < amount) {
+        showToast("आपके वॉलेट में पर्याप्त कॉइन नहीं हैं!");
+        return;
+      }
+
+      try {
+        document.getElementById("placeBetBtn").disabled = true;
+        await updateDoc(doc(db, "players", currentPhone), { coins: increment(-amount) });
+        await addDoc(collection(db, "bets"), {
+          round: gameState.round,
+          phone: currentPhone,
+          name: currentUserData.name,
+          box: selectedBox,
+          amount,
+          paid: false,
+          createdAt: serverTimestamp()
+        });
+        showToast(`डब्बा #${selectedBox} पर ${amount} कॉइन लग गए!`);
+      } catch (err) {
+        showToast("त्रुटि हुई: " + err.message);
+      } finally {
+        if (gameState.status === "open" && hasCoins()) {
+          document.getElementById("placeBetBtn").disabled = false;
+        }
+      }
+    };
+
+    // View Navigation
+    function hideAllMainViews() {
+      document.getElementById("customerLoginView").classList.add("hidden");
+      document.getElementById("customerGameView").classList.add("hidden");
+      document.getElementById("cashManagerView").classList.add("hidden");
+      document.getElementById("adminLoginView").classList.add("hidden");
+      document.getElementById("adminDashboardView").classList.add("hidden");
+    }
+
+    function returnToCustomerOrLogin() {
+      hideAllMainViews();
+      if (currentPhone) {
+        document.getElementById("customerGameView").classList.remove("hidden");
+      } else {
+        document.getElementById("customerLoginView").classList.remove("hidden");
+      }
+    }
+
+    // Cash Manager Sync & UI
+    let managersSynced = false;
+    function startManagersSync() {
+      if (managersSynced) {
+        renderAdminManagers();
+        syncLoggedInCashMgr();
+        return;
+      }
+      managersSynced = true;
+      onSnapshot(collection(db, "cashManagers"), (snap) => {
+        allManagersCache = [];
+        snap.forEach(d => allManagersCache.push({ docId: d.id, ...d.data() }));
+        renderAdminManagers();
+        syncLoggedInCashMgr();
+      });
+    }
+
+    function syncLoggedInCashMgr() {
+      if (!loggedInCashMgr) return;
+      const fresh = allManagersCache.find(m => m.managerId === loggedInCashMgr.managerId);
+      if (!fresh) {
+        loggedInCashMgr = null;
+        document.getElementById("cmDeskBox").classList.add("hidden");
+        document.getElementById("cmLoginBox").classList.remove("hidden");
+        return;
+      }
+      loggedInCashMgr = fresh;
+
+      if (!fresh.approved) {
+        document.getElementById("cmDeskBox").classList.add("hidden");
+        document.getElementById("cmLoginBox").classList.remove("hidden");
+        showToast("मैनेजर आईडी अप्रूवल पेंडिंग या revoked है।");
+        return;
+      }
+
+      document.getElementById("cmLoginBox").classList.add("hidden");
+      document.getElementById("cmDeskBox").classList.remove("hidden");
+      document.getElementById("cmLoggedNameDisplay").textContent = `${fresh.name} (${fresh.managerId})`;
+
+      const stock = fresh.stock || 0;
+      const cIn = fresh.cashIn || 0;
+      const cOut = fresh.cashOut || 0;
+      const handCash = cIn - cOut;
+
+      document.getElementById("cmStockVal").textContent = `🪙 ${stock}`;
+      document.getElementById("cmInVal").textContent = `🪙 ${cIn}`;
+      document.getElementById("cmOutVal").textContent = `🪙 ${cOut}`;
+      document.getElementById("cmHandCashVal").textContent = `${handCash < 0 ? "-" : ""}🪙 ${Math.abs(handCash)}`;
+      document.getElementById("cmHandCashVal").style.color = handCash >= 0 ? "var(--gold-bright)" : "#fda4af";
+
+      const badge = document.getElementById("cmStatusBadge");
+      const alertBox = document.getElementById("cmBlockedAlert");
+      if (fresh.blocked) {
+        badge.textContent = "ब्लॉक है";
+        badge.className = "status-pill status-locked";
+        alertBox.classList.remove("hidden");
+      } else {
+        badge.textContent = "सक्रिय";
+        badge.className = "status-pill status-open";
+        alertBox.classList.add("hidden");
+      }
+
+      renderCashMgrTable();
+    }
+
+    document.getElementById("cashMgrToggleBtn").onclick = () => {
+      hideAllMainViews();
+      document.getElementById("cashManagerView").classList.remove("hidden");
+      startManagersSync();
+      startPlayersSync();
+      if (loggedInCashMgr) {
+        syncLoggedInCashMgr();
+        loadCashLogsForCashMgr(loggedInCashMgr.managerId);
+      }
+    };
+
+    document.getElementById("backFromCashMgrBtn").onclick = returnToCustomerOrLogin;
+
+    document.getElementById("cmLoginBtn").onclick = async () => {
+      const mgrId = document.getElementById("cmLoginIdInput").value.trim().toUpperCase();
+      const pin = document.getElementById("cmLoginPinInput").value.trim();
+      if (!mgrId || !pin) {
+        showToast("मैनेजर आईडी और पिन डालें");
+        return;
+      }
+      const ref = doc(db, "cashManagers", mgrId);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) {
+        showToast("यह मैनेजर आईडी मौजूद नहीं है!");
+        return;
+      }
+      const data = snap.data();
+      if (String(data.pin) !== String(pin)) {
+        showToast("गलत पिन!");
+        return;
+      }
+      if (!data.approved) {
+        showToast("यह आईडी अभी एडमिन द्वारा अप्रूव नहीं की गई है!");
+        return;
+      }
+      loggedInCashMgr = { docId: snap.id, ...data };
+      syncLoggedInCashMgr();
+      loadCashLogsForCashMgr(mgrId);
+      showToast(`स्वागत है ${data.name}!`);
+    };
+
+    document.getElementById("cmLogoutBtn").onclick = () => {
+      loggedInCashMgr = null;
+      document.getElementById("cmLoginIdInput").value = "";
+      document.getElementById("cmLoginPinInput").value = "";
+      document.getElementById("cmDeskBox").classList.add("hidden");
+      document.getElementById("cmLoginBox").classList.remove("hidden");
+    };
+
+    // Admin Auth & Sections
+    function openAdminSections() {
+      startManagersSync();
+      startPlayersSync();
+      loadCashLogsForAdmin();
+      loadPnlLogsForAdmin();
+      loadCmAllocationLogsForAdmin();
+    }
+
+    document.getElementById("adminToggleBtn").onclick = () => {
+      hideAllMainViews();
+      if (auth.currentUser) {
+        document.getElementById("adminDashboardView").classList.remove("hidden");
+        openAdminSections();
+      } else {
+        document.getElementById("adminLoginView").classList.remove("hidden");
+      }
+    };
+
+    document.getElementById("backToGameBtn").onclick = returnToCustomerOrLogin;
+
+    document.getElementById("adminLoginBtn").onclick = async () => {
+      const email = document.getElementById("adminEmail").value.trim();
+      const pass = document.getElementById("adminPass").value;
+      if (!email || !pass) {
+        showToast("ईमेल और पासवर्ड दोनों डालें");
+        return;
+      }
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        showToast("एडमिन लॉगिन सफल!");
+      } catch (e) {
+        showToast("लॉगिन फेल: " + e.message);
+      }
+    };
+
+    document.getElementById("adminLogoutBtn").onclick = async () => {
+      await signOut(auth);
+      returnToCustomerOrLogin();
+      showToast("एडमिन लॉगआउट हो गया");
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        hideAllMainViews();
+        document.getElementById("adminDashboardView").classList.remove("hidden");
+        openAdminSections();
+      }
+    });
+
+    // Admin creates & approves Cash Manager
+    document.getElementById("createCashMgrBtn").onclick = async () => {
+      const res = await openCustomModal({
+        title: "+ नया कैश मैनेजर बनाएँ",
+        desc: "मैनेजर की आईडी, नाम और पिन डालें। यह आईडी आपके अप्रूवल के साथ तुरंत बन जाएगी।",
+        fields: [
+          { name: "managerId", placeholder: "मैनेजर आईडी (जैसे: CM-101)", value: "CM-101" },
+          { name: "name", placeholder: "मैनेजर का नाम", value: "" },
+          { name: "pin", type: "password", placeholder: "4 अंकों का पिन", value: "" }
+        ],
+        confirmText: "आईडी बनाएँ व अप्रूव करें",
+        confirmClass: "btn-green"
+      });
+      if (!res) return;
+      const mgrId = res.managerId.toUpperCase();
+      if (!mgrId || !res.name || !res.pin) {
+        showToast("आईडी, नाम और पिन तीनों भरें!");
+        return;
+      }
+      await setDoc(doc(db, "cashManagers", mgrId), {
+        managerId: mgrId,
+        name: res.name,
+        pin: res.pin,
+        approved: true,
+        blocked: false,
+        stock: 0,
+        cashIn: 0,
+        cashOut: 0,
+        createdAt: serverTimestamp()
+      });
+      showToast(`मैनेजर ${res.name} (${mgrId}) अप्रूव्ड और तैयार है!`);
+    };
+
+    // Render Managers list in Admin
+    function renderAdminManagers() {
+      const listEl = document.getElementById("adminManagersList");
+      if (!listEl) return;
+
+      let totalIn = 0;
+      let totalOut = 0;
+      allManagersCache.forEach(m => {
+        totalIn += (m.cashIn || 0);
+        totalOut += (m.cashOut || 0);
+      });
+      const netCollect = totalIn - totalOut;
+      const grandEl = document.getElementById("admTotalManagersCashVal");
+      grandEl.textContent = `${netCollect < 0 ? "-" : ""}🪙 ${Math.abs(netCollect)}`;
+      grandEl.style.color = netCollect >= 0 ? "var(--gold-bright)" : "#fda4af";
+
+      if (allManagersCache.length === 0) {
+        listEl.innerHTML = `<p style="font-size:12px; color:var(--muted);">अभी कोई कैश मैनेजर नहीं बना है। ऊपर '+ नया मैनेजर बनाएँ' दबाएँ।</p>`;
+        return;
+      }
+
+      listEl.innerHTML = "";
+      allManagersCache.forEach(m => {
+        const mNet = (m.cashIn || 0) - (m.cashOut || 0);
+        const div = document.createElement("div");
+        div.className = "mgr-item";
+        div.innerHTML = `
+          <div class="mgr-head">
+            <div>
+              <b style="color:#fff;">${m.name}</b> <span style="font-size:11px; color:var(--muted);">(${m.managerId} | पिन: ${m.pin})</span>
+            </div>
+            <span class="status-pill ${m.blocked ? "status-locked" : m.approved ? "status-open" : "status-pending"}">
+              ${m.blocked ? "ब्लॉक" : m.approved ? "अप्रूव्ड" : "पेंडिंग"}
+            </span>
+          </div>
+          <div class="mgr-stats">
+            <div class="mgr-stat-cell"><div style="color:var(--muted);">स्टॉक</div><b style="color:var(--gold-bright);">🪙 ${m.stock || 0}</b></div>
+            <div class="mgr-stat-cell"><div style="color:var(--muted);">कलेक्ट (+)</div><b style="color:#6ee7b7;">🪙 ${m.cashIn || 0}</b></div>
+            <div class="mgr-stat-cell"><div style="color:var(--muted);">रिडीम (-)</div><b style="color:#fda4af;">🪙 ${m.cashOut || 0}</b></div>
+            <div class="mgr-stat-cell"><div style="color:var(--muted);">मिलने योग्य</div><b style="color:${mNet >= 0 ? "#fde68a" : "#fda4af"};">${mNet < 0 ? "-" : ""}🪙 ${Math.abs(mNet)}</b></div>
+          </div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="btn-sm" style="background:rgba(16,185,129,0.25); border-color:#10b981; color:#a7f3d0;" data-stock="${m.managerId}">+ स्टॉक दें</button>
+            ${!m.approved ? `<button class="btn-sm" style="background:rgba(251,191,36,0.22); border-color:#fbbf24; color:#fde68a;" data-approve-mgr="${m.managerId}">✅ अप्रूव करें</button>` : ""}
+            <button class="btn-sm" style="background:${m.blocked ? "rgba(16,185,129,0.25)" : "rgba(244,63,94,0.25)"}; border-color:${m.blocked ? "#10b981" : "#f43f5e"}; color:#fff;" data-block-mgr="${m.managerId}">
+              ${m.blocked ? "✅ अनब्लॉक" : "🚫 ब्लॉक"}
+            </button>
+          </div>
+        `;
+
+        div.querySelector(`[data-stock="${m.managerId}"]`).onclick = async () => {
+          const inp = await openCustomModal({
+            title: `🪙 ${m.name} (${m.managerId}) को कॉइन स्टॉक दें`,
+            desc: `मौजूदा स्टॉक: ${m.stock || 0} कॉइन। आगे बाँटने के लिए कितने कॉइन देने हैं?`,
+            fields: [{ name: "coins", type: "number", placeholder: "कॉइन संख्या", value: "500" }],
+            confirmText: "स्टॉक भेजें",
+            confirmClass: "btn-green"
+          });
+          const val = parseInt(inp?.coins, 10);
+          if (!val || val <= 0) return;
+          await updateDoc(doc(db, "cashManagers", m.managerId), { stock: increment(val) });
+          await addDoc(collection(db, "cmAllocations"), {
+            managerId: m.managerId,
+            managerName: m.name,
+            coins: val,
+            createdAt: serverTimestamp()
+          });
+          showToast(`${m.name} को ${val} कॉइन स्टॉक दे दिया गया!`);
+        };
+
+        const appBtn = div.querySelector(`[data-approve-mgr="${m.managerId}"]`);
+        if (appBtn) {
+          appBtn.onclick = async () => {
+            await updateDoc(doc(db, "cashManagers", m.managerId), { approved: true });
+            showToast(`${m.name} की आईडी अप्रूव हो गई!`);
+          };
+        }
+
+        div.querySelector(`[data-block-mgr="${m.managerId}"]`).onclick = async () => {
+          const nextBlock = !m.blocked;
+          await updateDoc(doc(db, "cashManagers", m.managerId), { blocked: nextBlock });
+          showToast(nextBlock ? `${m.name} ब्लॉक कर दिया गया!` : `${m.name} अनब्लॉक कर दिया गया!`);
+        };
+
+        listEl.appendChild(div);
+      });
+    }
+
+    // Timer & Round controls
+    document.getElementById("startTimerBtn").onclick = async () => {
+      const sec = parseInt(document.getElementById("timerDurationInput").value, 10);
+      if (!sec || sec < 5) {
+        showToast("कम से कम 5 सेकंड डालें!");
+        return;
+      }
+      const newEndTime = Date.now() + sec * 1000;
+      autoLockedForThisEndTime = null;
+      await updateDoc(gameDocRef, { endTime: newEndTime, status: "open" });
+      showToast(`${sec} सेकंड का टाइमर शुरू!`);
+    };
+
+    document.getElementById("addTimeBtn").onclick = async () => {
+      const base = gameState.endTime && gameState.endTime > Date.now() ? gameState.endTime : Date.now();
+      await updateDoc(gameDocRef, { endTime: base + 10000 });
+      showToast("+10 सेकंड बढ़ा दिए गए");
+    };
+
+    document.getElementById("subTimeBtn").onclick = async () => {
+      if (!gameState.endTime) {
+        showToast("अभी कोई टाइमर नहीं चल रहा है");
+        return;
+      }
+      const updated = Math.max(Date.now(), gameState.endTime - 10000);
+      await updateDoc(gameDocRef, { endTime: updated });
+      showToast("-10 सेकंड घटा दिए गए");
+    };
+
+    document.getElementById("stopTimerBtn").onclick = async () => {
+      await updateDoc(gameDocRef, { endTime: null });
+      showToast("टाइमर रीसेट/बंद कर दिया गया");
+    };
+
+    document.getElementById("openBettingBtn").onclick = async () => {
+      await updateDoc(gameDocRef, { status: "open" });
+      showToast("बेटिंग चालू कर दी गई!");
+    };
+
+    document.getElementById("lockBettingBtn").onclick = async () => {
+      await updateDoc(gameDocRef, { status: "locked" });
+      showToast("बेटिंग लॉक कर दी गई!");
+    };
+
+    document.getElementById("declareWinnerBtn").onclick = async () => {
+      const winBox = parseInt(document.getElementById("winningBoxSelect").value, 10);
+      if (!winBox) {
+        showToast("पहले विजेता डब्बा चुनें!");
+        return;
+      }
+      if (gameState.status === "result") {
+        showToast("इस राउंड का रिजल्ट पहले ही घोषित हो चुका है!");
+        return;
+      }
+
+      const roundTotalBet = currentRoundBets.reduce((sum, b) => sum + b.amount, 0);
+      const winningBets = currentRoundBets.filter(b => b.box === winBox && !b.paid);
+      let roundPayout = 0;
+
+      for (const bet of winningBets) {
+        const winCoins = bet.amount * 10;
+        roundPayout += winCoins;
+        await updateDoc(doc(db, "players", bet.phone), { coins: increment(winCoins) });
+        await updateDoc(doc(db, "bets", bet.id), { paid: true });
+      }
+
+      const roundNet = roundTotalBet - roundPayout;
+      const profitDelta = roundNet > 0 ? roundNet : 0;
+      const lossDelta = roundNet < 0 ? Math.abs(roundNet) : 0;
+
+      await updateDoc(gameDocRef, {
+        status: "result",
+        winner: winBox,
+        endTime: null,
+        totalProfit: increment(profitDelta),
+        totalLoss: increment(lossDelta)
+      });
+
+      await addDoc(collection(db, "pnlLogs"), {
+        round: gameState.round,
+        winnerBox: winBox,
+        totalBet: roundTotalBet,
+        payout: roundPayout,
+        profit: profitDelta,
+        loss: lossDelta,
+        createdAt: serverTimestamp()
+      });
+
+      showToast(`डब्बा #${winBox} विजेता! इनाम: ${roundPayout} | ${roundNet >= 0 ? "प्रॉफिट +" + roundNet : "लॉस -" + Math.abs(roundNet)}`);
+    };
+
+    document.getElementById("nextRoundBtn").onclick = async () => {
+      const nextR = (gameState.round || 1) + 1;
+      autoLockedForThisEndTime = null;
+      await updateDoc(gameDocRef, {
+        round: nextR,
+        status: "open",
+        winner: null,
+        endTime: null
+      });
+      document.getElementById("winningBoxSelect").value = "";
+      selectedBox = null;
+      showToast(`नया राउंड #${nextR} शुरू हो गया!`);
+    };
+
+    // Cash Add / Redeem handlers
+    async function handleCashAdd(player, actorType) {
+      if (actorType === "MANAGER") {
+        const mgr = allManagersCache.find(m => m.managerId === loggedInCashMgr?.managerId);
+        if (!mgr || !mgr.approved || mgr.blocked) {
+          showToast("मैनेजर ब्लॉक या अप्रूवल-रहित है!");
+          return;
+        }
+        const inp = await openCustomModal({
+          title: `+ कॉइन दें (${player.name})`,
+          desc: `मैनेजर स्टॉक: ${mgr.stock || 0} कॉइन। खिलाड़ी से कैश लेकर कितने कॉइन देने हैं?`,
+          fields: [{ name: "coins", type: "number", placeholder: "कॉइन राशि", value: "100" }],
+          confirmText: "+ कॉइन जोड़ें",
+          confirmClass: "btn-green"
+        });
+        const val = parseInt(inp?.coins, 10);
+        if (!val || val <= 0) return;
+        if (val > (mgr.stock || 0)) {
+          showToast(`मैनेजर स्टॉक में केवल ${mgr.stock || 0} कॉइन हैं!`);
+          return;
+        }
+        await updateDoc(doc(db, "players", player.phone), { coins: increment(val), status: "approved" });
+        await updateDoc(doc(db, "cashManagers", mgr.managerId), {
+          stock: increment(-val),
+          cashIn: increment(val)
+        });
+        await addDoc(collection(db, "cashLogs"), {
+          type: "CASH_IN",
+          name: player.name,
+          phone: player.phone,
+          coins: val,
+          managerId: mgr.managerId,
+          handledBy: `मैनेजर (${mgr.name})`,
+          createdAt: serverTimestamp()
+        });
+        showToast(`${player.name} को ${val} कॉइन दिए गए (कैश कलेक्ट +${val})`);
+      } else {
+        const inp = await openCustomModal({
+          title: `[एडमिन] + कॉइन जोड़ें (${player.name})`,
+          desc: `${player.name} (${player.phone}) से कैश लेकर कितने कॉइन जोड़ने हैं?`,
+          fields: [{ name: "coins", type: "number", placeholder: "कॉइन राशि", value: "100" }],
+          confirmText: "+ कॉइन जोड़ें",
+          confirmClass: "btn-green"
+        });
+        const val = parseInt(inp?.coins, 10);
+        if (!val || val <= 0) return;
+        await updateDoc(doc(db, "players", player.phone), { coins: increment(val), status: "approved" });
+        await addDoc(collection(db, "cashLogs"), {
+          type: "CASH_IN",
+          name: player.name,
+          phone: player.phone,
+          coins: val,
+          managerId: null,
+          handledBy: "एडमिन",
+          createdAt: serverTimestamp()
+        });
+        showToast(`${player.name} के वॉलेट में ${val} कॉइन जुड़े`);
+      }
+    }
+
+    async function handleCashRedeem(player, actorType) {
+      const currentBal = player.coins || 0;
+      if (actorType === "MANAGER") {
+        const mgr = allManagersCache.find(m => m.managerId === loggedInCashMgr?.managerId);
+        if (!mgr || !mgr.approved || mgr.blocked) {
+          showToast("मैनेजर ब्लॉक या अप्रूवल-रहित है!");
+          return;
+        }
+        const inp = await openCustomModal({
+          title: `- कैश रिडीम (${player.name})`,
+          desc: `खिलाड़ी के कॉइन: ${currentBal}। कैश देकर कितने कॉइन कटाने हैं? (यह कैश कलेक्शन में से माइनस होगा)`,
+          fields: [{ name: "coins", type: "number", placeholder: "रिडीम कॉइन", value: "100" }],
+          confirmText: "- रिडीम करें",
+          confirmClass: "btn-red"
+        });
+        const val = parseInt(inp?.coins, 10);
+        if (!val || val <= 0) return;
+        if (val > currentBal) {
+          showToast(`खिलाड़ी के पास केवल ${currentBal} कॉइन हैं!`);
+          return;
+        }
+        await updateDoc(doc(db, "players", player.phone), { coins: increment(-val) });
+        await updateDoc(doc(db, "cashManagers", mgr.managerId), { cashOut: increment(val) });
+        await addDoc(collection(db, "cashLogs"), {
+          type: "CASH_REDEEM",
+          name: player.name,
+          phone: player.phone,
+          coins: val,
+          managerId: mgr.managerId,
+          handledBy: `मैनेजर (${mgr.name})`,
+          createdAt: serverTimestamp()
+        });
+        showToast(`${player.name} के ${val} कॉइन रिडीम हुए`);
+      } else {
+        const inp = await openCustomModal({
+          title: `[एडमिन] - रिडीम (${player.name})`,
+          desc: `खिलाड़ी के कॉइन: ${currentBal}। कैश देकर कितने कॉइन कटाने हैं?`,
+          fields: [{ name: "coins", type: "number", placeholder: "रिडीम कॉइन", value: "100" }],
+          confirmText: "- रिडीम करें",
+          confirmClass: "btn-red"
+        });
+        const val = parseInt(inp?.coins, 10);
+        if (!val || val <= 0) return;
+        if (val > currentBal) {
+          showToast(`खिलाड़ी के पास केवल ${currentBal} कॉइन हैं!`);
+          return;
+        }
+        await updateDoc(doc(db, "players", player.phone), { coins: increment(-val) });
+        await addDoc(collection(db, "cashLogs"), {
+          type: "CASH_REDEEM",
+          name: player.name,
+          phone: player.phone,
+          coins: val,
+          managerId: null,
+          handledBy: "एडमिन",
+          createdAt: serverTimestamp()
+        });
+        showToast(`${player.name} के ${val} कॉइन रिडीम हुए`);
+      }
+    }
+
+    // Render Players Table (Admin)
+    function renderPlayersTable() {
+      const tbody = document.getElementById("adminUsersTableBody");
+      if (!tbody) return;
+      const term = (document.getElementById("playerSearchInput")?.value || "").trim().toLowerCase();
+
+      const filtered = allPlayersCache.filter(p =>
+        (p.name || "").toLowerCase().includes(term) ||
+        (p.phone || "").includes(term)
+      );
+
+      document.getElementById("totalPlayersBadge").textContent = `कुल: ${allPlayersCache.length}`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--muted); padding:14px;">कोई खिलाड़ी नहीं मिला।</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = "";
+      filtered.forEach((p, idx) => {
+        const st = p.status || "approved";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><span class="sr-badge">#${idx + 1}</span></td>
+          <td>
+            <div style="font-weight:700; color:#fff;">${p.name || "-"}</div>
+            <span class="status-pill ${st === "approved" ? "status-open" : st === "blocked" ? "status-locked" : "status-pending"}" style="font-size:9px; padding:2px 6px;">
+              ${st === "approved" ? "अप्रूव्ड" : st === "blocked" ? "ब्लॉक" : "पेंडिंग"}
+            </span>
+          </td>
+          <td style="color:var(--muted); font-variant-numeric: tabular-nums;">${p.phone}</td>
+          <td>
+            <div style="font-weight:800; color:var(--gold-bright); margin-bottom:4px;">🪙 ${p.coins || 0}</div>
+            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+              ${st !== "approved" ? `<button class="btn-sm" style="background:rgba(251,191,36,0.22); border-color:#fbbf24; color:#fde68a; padding:3px 7px; font-size:10.5px;" data-app="${p.phone}">✅ अप्रूव</button>` : ""}
+              <button class="btn-sm" style="background:rgba(16,185,129,0.25); border-color:#10b981; color:#a7f3d0; padding:3px 7px; font-size:10.5px;" data-add="${p.phone}">+ कॉइन</button>
+              <button class="btn-sm" style="background:rgba(244,63,94,0.25); border-color:#f43f5e; color:#fecdd3; padding:3px 7px; font-size:10.5px;" data-sub="${p.phone}">- रिडीम</button>
+              <button class="btn-sm" style="padding:3px 7px; font-size:10.5px;" data-blk="${p.phone}">${st === "blocked" ? "अनब्लॉक" : "ब्लॉक"}</button>
+            </div>
+          </td>
+        `;
+
+        const appBtn = tr.querySelector(`[data-app="${p.phone}"]`);
+        if (appBtn) {
+          appBtn.onclick = async () => {
+            await updateDoc(doc(db, "players", p.phone), { status: "approved" });
+            showToast(`${p.name} की आईडी अप्रूव हो गई!`);
+          };
+        }
+        tr.querySelector(`[data-add="${p.phone}"]`).onclick = () => handleCashAdd(p, "ADMIN");
+        tr.querySelector(`[data-sub="${p.phone}"]`).onclick = () => handleCashRedeem(p, "ADMIN");
+        tr.querySelector(`[data-blk="${p.phone}"]`).onclick = async () => {
+          const nextSt = st === "blocked" ? "approved" : "blocked";
+          await updateDoc(doc(db, "players", p.phone), { status: nextSt });
+          showToast(nextSt === "blocked" ? `${p.name} ब्लॉक कर दिया गया!` : `${p.name} अनब्लॉक कर दिया गया!`);
+        };
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render Players Table (Cash Manager - only approved & non-blocked players)
+    function renderCashMgrTable() {
+      const tbody = document.getElementById("cashMgrTableBody");
+      if (!tbody) return;
+      const term = (document.getElementById("cashMgrSearchInput")?.value || "").trim().toLowerCase();
+      const isBlocked = !!loggedInCashMgr?.blocked;
+
+      const eligible = allPlayersCache.filter(p => (p.status || "approved") === "approved");
+      const filtered = eligible.filter(p =>
+        (p.name || "").toLowerCase().includes(term) ||
+        (p.phone || "").includes(term)
+      );
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--muted); padding:14px;">कोई अप्रूव्ड खिलाड़ी नहीं मिला।</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = "";
+      filtered.forEach((p, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><span class="sr-badge">#${idx + 1}</span></td>
+          <td style="font-weight:700; color:#fff;">${p.name || "-"}</td>
+          <td style="color:var(--muted); font-variant-numeric: tabular-nums;">${p.phone}</td>
+          <td>
+            <div style="font-weight:800; color:var(--gold-bright); margin-bottom:4px;">🪙 ${p.coins || 0}</div>
+            <div style="display:flex; gap:5px;">
+              <button class="btn-sm" style="background:rgba(16,185,129,0.28); border-color:#10b981; color:#a7f3d0; padding:4px 8px; font-size:11px;" ${isBlocked ? "disabled" : ""} data-cm-add="${p.phone}">+ कॉइन</button>
+              <button class="btn-sm" style="background:rgba(244,63,94,0.28); border-color:#f43f5e; color:#fecdd3; padding:4px 8px; font-size:11px;" ${isBlocked ? "disabled" : ""} data-cm-sub="${p.phone}">- रिडीम</button>
+            </div>
+          </td>
+        `;
+        tr.querySelector(`[data-cm-add="${p.phone}"]`).onclick = () => handleCashAdd(p, "MANAGER");
+        tr.querySelector(`[data-cm-sub="${p.phone}"]`).onclick = () => handleCashRedeem(p, "MANAGER");
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById("playerSearchInput").oninput = renderPlayersTable;
+    document.getElementById("cashMgrSearchInput").oninput = renderCashMgrTable;
+
+    let playersSynced = false;
+    function startPlayersSync() {
+      if (playersSynced) {
+        renderPlayersTable();
+        renderCashMgrTable();
+        return;
+      }
+      playersSynced = true;
+      onSnapshot(collection(db, "players"), (snap) => {
+        allPlayersCache = [];
+        snap.forEach(d => allPlayersCache.push(d.data()));
+        allPlayersCache.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+        renderPlayersTable();
+        renderCashMgrTable();
+      });
+    }
+
+    function renderCashLogsInto(boxId, filterMgrId = null) {
+      const q = query(collection(db, "cashLogs"), orderBy("createdAt", "desc"), limit(30));
+      onSnapshot(q, (snap) => {
+        const box = document.getElementById(boxId);
+        if (!box) return;
+        let items = [];
+        snap.forEach(docSnap => {
+          const data = docSnap.data();
+          if (!filterMgrId) {
+            items.push(data);
+          } else if (filterMgrId === "ANY_MANAGER") {
+            if (data.managerId) items.push(data);
+          } else {
+            if (data.managerId === filterMgrId) items.push(data);
+          }
+        });
+        if (items.length === 0) {
+          box.innerHTML = "<p style='color:var(--muted); font-size:12px;'>अभी कोई कैश रिकॉर्ड नहीं है।</p>";
+          return;
+        }
+        box.innerHTML = "";
+        items.forEach(item => {
+          const isIn = item.type === "CASH_IN";
+          const div = document.createElement("div");
+          div.className = "log-item";
+          div.innerHTML = `
+            <div>
+              <b style="color:${isIn ? "#6ee7b7" : "#fda4af"};">${isIn ? "कैश कलेक्ट (+)" : "कैश रिडीम (-)"}</b>
+              — <b>${item.name}</b> (${item.phone})
+              <div class="log-meta">📅 ${formatDateTime(item.createdAt)} • [${item.handledBy || "एडमिन"}]</div>
+            </div>
+            <div style="font-weight:800; color:${isIn ? "#6ee7b7" : "#fda4af"}; white-space:nowrap;">${isIn ? "+" : "-"}🪙 ${item.coins}</div>
+          `;
+          box.appendChild(div);
+        });
+      });
+    }
+
+    function loadCashLogsForAdmin() {
+      renderCashLogsInto("adminCashLogs", null);
+      renderCashLogsInto("adminCmPlayerLogs", "ANY_MANAGER");
+    }
+
+    function loadCashLogsForCashMgr(mgrId) {
+      renderCashLogsInto("cashMgrLogs", mgrId);
+    }
+
+    function loadCmAllocationLogsForAdmin() {
+      const q = query(collection(db, "cmAllocations"), orderBy("createdAt", "desc"), limit(25));
+      onSnapshot(q, (snap) => {
+        const box = document.getElementById("adminCmAllocationLogs");
+        if (!box) return;
+        if (snap.empty) {
+          box.innerHTML = "<p style='color:var(--muted); font-size:12px;'>अभी मैनेजर को कोई कॉइन स्टॉक नहीं दिया गया है।</p>";
+          return;
+        }
+        box.innerHTML = "";
+        snap.forEach(docSnap => {
+          const item = docSnap.data();
+          const div = document.createElement("div");
+          div.className = "log-item";
+          div.innerHTML = `
+            <div>
+              <b style="color:#6ee7b7;">${item.managerName || "मैनेजर"} (${item.managerId || ""})</b> को स्टॉक दिया गया
+              <div class="log-meta">📅 ${formatDateTime(item.createdAt)}</div>
+            </div>
+            <div style="font-weight:800; color:var(--gold-bright);">+🪙 ${item.coins}</div>
+          `;
+          box.appendChild(div);
+        });
+      });
+    }
+
+    function loadPnlLogsForAdmin() {
+      const q = query(collection(db, "pnlLogs"), orderBy("createdAt", "desc"), limit(20));
+      onSnapshot(q, (snap) => {
+        const box = document.getElementById("adminPnlLogs");
+        if (!box) return;
+        if (snap.empty) {
+          box.innerHTML = "<p style='color:var(--muted); font-size:12px;'>अभी किसी राउंड का प्रॉफिट/लॉस रिकॉर्ड नहीं है।</p>";
+          return;
+        }
+        box.innerHTML = "";
+        snap.forEach(docSnap => {
+          const item = docSnap.data();
+          const div = document.createElement("div");
+          div.className = "log-item";
+          div.innerHTML = `
+            <div>
+              <b>राउंड #${item.round}</b> (डब्बा #${item.winnerBox})
+              <div class="log-meta">📅 ${formatDateTime(item.createdAt)} • बेट: ${item.totalBet} | इनाम: ${item.payout}</div>
+            </div>
+            <div style="font-weight:800; color:${item.profit > 0 ? "#6ee7b7" : item.loss > 0 ? "#fda4af" : "var(--gold-bright)"};">
+              ${item.profit > 0 ? "+प्रॉफिट 🪙 " + item.profit : item.loss > 0 ? "-लॉस 🪙 " + item.loss : "बराबर 🪙 0"}
+            </div>
+          `;
+          box.appendChild(div);
+        });
+      });
+    }
+  </script>
+</body>
+</html>
